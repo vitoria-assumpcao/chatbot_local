@@ -1,0 +1,12 @@
+# Core do LangChain
+langchain
+langchain-community
+
+# Vectorial Database
+chromadb
+
+# Read pdf files
+pypdf
+
+# Unit tests
+pytest

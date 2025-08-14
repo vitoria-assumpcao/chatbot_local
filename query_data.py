@@ -1,0 +1,67 @@
+import argparse
+from langchain_chroma import Chroma
+from langchain.prompts import ChatPromptTemplate
+from langchain_ollama.chat_models import ChatOllama
+
+from get_embedding_function import get_embedding_function
+
+CHROMA_PATH = "chroma"
+
+# NOVO PROMPT_TEMPLATE (MAIS ROBUSTO)
+PROMPT_TEMPLATE = """
+You are an expert assistant on board game rules.
+Your task is to answer the user's question based exclusively on the provided context.
+Analyze the context text and extract the relevant information to formulate a clear and precise answer.
+Do not add any information that is not explicitly in the text.
+If the answer cannot be found in the context, reply with: "The information to answer this question was not found in the provided documents."
+
+CONTEXT:
+{context}
+
+QUESTION:
+{question}
+
+ANSWER:
+"""
+
+
+def main():
+    # Create CLI.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("query_text", type=str, help="The query text.")
+    args = parser.parse_args()
+    query_text = args.query_text
+    query_rag(query_text)
+
+
+def query_rag(query_text: str):
+    # Prepare the DB.
+    embedding_function = get_embedding_function()
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+
+    # Search the DB.
+    results = db.similarity_search_with_score(query_text, k=5)
+
+    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    prompt = prompt_template.format(context=context_text, question=query_text)
+    # print(prompt)
+
+    model = ChatOllama(model="llama3.1")
+    response_text = model.invoke(prompt)
+
+    sources = [doc.metadata.get("id", None) for doc, _score in results]
+    formatted_response = (
+        f"Response: {response_text}\n\n"
+        f"Sources: {sources}\n\n"
+        f"--------------------------------------------------\n"
+        f"CONTEXTO USADO (CHUNKS):\n"
+        f"--------------------------------------------------\n"
+        f"{context_text}"
+    )
+    print(formatted_response)
+    return response_text
+
+
+if __name__ == "__main__":
+    main()
