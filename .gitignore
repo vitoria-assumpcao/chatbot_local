@@ -1,4 +1,4 @@
-# Arquivo de ambiente - NUNCA deve ir para o GitHub!
+# Arquivo de ambiente
 .env
 
 # Pasta do ambiente virtual
