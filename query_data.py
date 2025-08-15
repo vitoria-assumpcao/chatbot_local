@@ -49,6 +49,7 @@ def query_rag(query_text: str):
     prompt = prompt_template.format(context=context_text, question=query_text)
     # print(prompt)
 
+
     model = ChatOllama(model="llama3.1")
     response_text = model.invoke(prompt).content
 
@@ -56,7 +57,6 @@ def query_rag(query_text: str):
 
     # formatted answer
     print("ANSWER:\n" + "="*50)
-    
     print(response_text.strip())
     print("="*50 + "\n")
 
@@ -76,6 +76,7 @@ def query_rag(query_text: str):
     print("="*50)
     
     return response_text
+    
 
 
 if __name__ == "__main__":
